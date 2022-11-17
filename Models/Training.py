@@ -41,8 +41,12 @@ class ViTATrain(LightningModule):
         self._common_step(batch, batch_idx, "val")
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
-        return optimizer
+        optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams.lr)
+        lr_scheduler = {
+            'scheduler': torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=10),
+            'monitor': 'val_loss'
+        }
+        return [optimizer], [lr_scheduler]
 
     def _prepare_batch(self, batch):
         return batch[0]['image'], batch[0]['image_2'], batch[0]['gt_image']
