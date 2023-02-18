@@ -10,7 +10,7 @@ from pytorch_lightning.loggers import WandbLogger
 
 
 if __name__ == "__main__":
-    wandb_logger = WandbLogger(project="SSL4N")
+    wandb_logger = WandbLogger(project="MR2CT")
 
     lr_monitor = LearningRateMonitor(logging_interval='epoch')
     checkpoint_callback = ModelCheckpoint(dirpath="saved_models\\", save_top_k=1, monitor="val_loss", save_on_train_epoch_end=True)
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         max_epochs=5000,
         callbacks=[lr_monitor, checkpoint_callback],
         log_every_n_steps=1,
-        precision=16
+        precision="bf16"
     )
 
     trainer.fit(

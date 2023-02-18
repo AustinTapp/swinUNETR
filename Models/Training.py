@@ -4,7 +4,7 @@ from Models.MONAImodels import SwinUNETR
 from torch.nn import L1Loss, MSELoss
 from monai.losses import ContrastiveLoss, DiceCELoss, SSIMLoss
 
-from Optimizer import LinearWarmupCosineAnnealingLR
+from Models.Optimizer import LinearWarmupCosineAnnealingLR
 
 from monai.visualize.img2tensorboard import plot_2d_or_3d_image
 import numpy as np
@@ -13,13 +13,13 @@ import torch
 
 class swinUNETR(LightningModule):
     def __init__(self, SWIN_size,
-                 img_size=(1, 1, 128, 128, 128), in_channels=4, out_channels=None, batch_size=1, feature_size=48,
+                 img_size=(1, 4, 128, 128, 128), in_channels=4, out_channels=None, batch_size=1, feature_size=48,
                  lr=1e-4, wd=1e-5):
         super().__init__()
 
         self.save_hyperparameters()
         self.example_input_array = [
-            torch.zeros(self.hparams.img_size), torch.zeros(self.hparams.img_size)]
+            torch.zeros(self.hparams.img_size)]
 
         self.model = SwinUNETR(
             img_size=(SWIN_size),
@@ -31,7 +31,7 @@ class swinUNETR(LightningModule):
         #for CT recon, note L1 = MAE
         self.L1 = L1Loss()
         self.L2 = MSELoss()
-        self.contrast = ContrastiveLoss(temperature=0.05, batch_size=self.hparams.batch_size)
+        self.contrast = ContrastiveLoss(temperature=0.05)
         self.SSIM = SSIMLoss(spatial_dims=3)
 
         #for skull seg, try regular dice CE for now: change to squared later?

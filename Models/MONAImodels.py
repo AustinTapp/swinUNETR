@@ -354,20 +354,20 @@ class SwinUNETR(nn.Module):
 
         #decoder for CT modality transfer
         dec4CT = self.encoder10(hidden_states_out[4])
-        dec3CT = self.decoder5(dec4CT, hidden_states_out[3])
-        dec2CT = self.decoder4(dec3CT, enc3)
-        dec1CT = self.decoder3(dec2CT, enc2)
-        dec0CT = self.decoder2(dec1CT, enc1)
-        outCT_image = self.decoder1(dec0CT, enc0)
+        dec3CT = self.decoder5CT(dec4CT, hidden_states_out[3])
+        dec2CT = self.decoder4CT(dec3CT, enc3)
+        dec1CT = self.decoder3CT(dec2CT, enc2)
+        dec0CT = self.decoder2CT(dec1CT, enc1)
+        outCT_image = self.decoder1CT(dec0CT, enc0)
         logitsCT = self.outCT(outCT_image)
 
         #decoder for Segmentation
         dec4Seg = self.encoder10(hidden_states_out[4])
-        dec3Seg = self.decoder5(dec4Seg, hidden_states_out[3])
-        dec2Seg = self.decoder4(dec3Seg, enc3)
-        dec1Seg = self.decoder3(dec2Seg, enc2)
-        dec0Seg = self.decoder2(dec1Seg, enc1)
-        outSegment = self.decoder1(dec0Seg, enc0)
+        dec3Seg = self.decoder5Seg(dec4Seg, hidden_states_out[3])
+        dec2Seg = self.decoder4Seg(dec3Seg, enc3)
+        dec1Seg = self.decoder3Seg(dec2Seg, enc2)
+        dec0Seg = self.decoder2Seg(dec1Seg, enc1)
+        outSegment = self.decoder1Seg(dec0Seg, enc0)
         logitsSeg = self.outSeg(outSegment)
 
         return logitsCT, logitsSeg
