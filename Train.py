@@ -29,7 +29,7 @@ if __name__ == "__main__":
     )
 
     trainer.fit(
-        model=swinUNETR(batch_size=8, SWIN_size=SWIN_size),
+        model=swinUNETR(batch_size=1, SWIN_size=SWIN_size),
         #ckpt_path=last_chpt,
-        datamodule=MRIdata(batch_size=8, SWIN_size=SWIN_size)
+        datamodule=MRIdata(batch_size=1, SWIN_size=SWIN_size)
     )

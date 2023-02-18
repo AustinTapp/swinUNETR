@@ -40,18 +40,17 @@ class NiftiData(Dataset):
 
             [
                 LoadImaged(keys=["MR", "CT", "Segs"]),
-                # EnsureChannelFirstd(keys=["MR", "CT", "Segs"]),
-                # Orientationd(keys=["MR", "CT", "Segs"], axcodes='RAI'),
+                EnsureChannelFirstd(keys=["MR", "CT", "Segs"]),
+                Orientationd(keys=["MR", "CT", "Segs"], axcodes='RAI'),
                 # #redundent but still okay to do, segmentation should be to nearest, while others are bilinear
-                # Spacingd(keys=["MR", "CT", "Segs"], pixdim=(1.0, 1.0, 1.0), mode=("bilinear", "bilinear", "nearest")),
-                # ScaleIntensityd(keys=["MR", "CT"], minv=0.0, maxv=1.0),
-                # CropForegroundd(keys=["MR", "CT", "Segs"], source_key="MR",
-                #                 k_divisible=SWIN_size, margin="edge"),
-                # RandSpatialCropd(keys=["MR", "CT", "Segs"], roi_size=SWIN_size, random_size=False),
-                # RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[0], prob=0.25),
-                # RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[1], prob=0.25),
-                # RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[2], prob=0.25),
-                # RandRotate90d(keys=["MR", "CT", "Segs"], prob=0.25, max_k=3),
+                Spacingd(keys=["MR", "CT", "Segs"], pixdim=(1.0, 1.0, 1.0), mode=("bilinear", "bilinear", "nearest")),
+                ScaleIntensityd(keys=["MR", "CT"], minv=0.0, maxv=1.0),
+                CropForegroundd(keys=["MR", "CT", "Segs"], source_key="MR", k_divisible=SWIN_size),
+                RandSpatialCropd(keys=["MR", "CT", "Segs"], roi_size=SWIN_size, random_size=False),
+                RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[0], prob=0.25),
+                RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[1], prob=0.25),
+                RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[2], prob=0.25),
+                RandRotate90d(keys=["MR", "CT", "Segs"], prob=0.25, max_k=3),
 
                 #ToTensord(keys=["MR", "CT", "Segs"])
             ]

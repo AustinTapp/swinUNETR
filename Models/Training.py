@@ -13,7 +13,7 @@ import torch
 
 class swinUNETR(LightningModule):
     def __init__(self, SWIN_size,
-                 img_size=(1, 4, 128, 128, 128), in_channels=4, out_channels=None, batch_size=1, feature_size=48,
+                 img_size=(1, 1, 128, 128, 128), in_channels=4, batch_size=1, feature_size=48,
                  lr=1e-4, wd=1e-5):
         super().__init__()
 
@@ -23,7 +23,7 @@ class swinUNETR(LightningModule):
 
         self.model = SwinUNETR(
             img_size=(SWIN_size),
-            in_channels=4,
+            in_channels=1,
             feature_size=48,
             use_checkpoint=True)
 
@@ -58,9 +58,9 @@ class swinUNETR(LightningModule):
         return [optimizer], [lr_scheduler]
 
     def _prepare_batch(self, batch):
-        MR_batch = torch.cat([batch[i]['MR'] for i in range(len(batch))])
-        CT_batch = torch.cat([batch[i]['CT'] for i in range(len(batch))])
-        Seg_batch = torch.cat([batch[i]['Segs'] for i in range(len(batch))])
+        MR_batch = batch['MR']
+        CT_batch = batch['CT']
+        Seg_batch = batch['Segs']
         return MR_batch, CT_batch, Seg_batch
 
     def _common_step(self, batch, batch_idx, stage: str):
@@ -112,13 +112,11 @@ class swinUNETR(LightningModule):
                                   caption=["GT CT", "GT Seg"])
 
             CT_recon = CT_recon.to(dtype=torch.float16)
-            skull_Seg = skull_Seg.to(dtype=torch.float16)
             CT_recon_array = np.clip(CT_recon.detach().cpu().numpy(), 0, 1)
-            skull_Seg_array = np.clip(skull_Seg.detach().cpu().numpy(), 0, 1)
 
             self.logger.log_image(key="Predictions", images=[
                 (CT_recon_array * 255)[0, 0, :, :, 64],
-                (skull_Seg_array.detach().cpu().numpy() * (255/7))[0, 0, :, :, 64]],
+                ((skull_Seg.detach().cpu().numpy().argmax(1)) * (255/7))[0, :, :, 64]],
                                   caption=["CT Recon", "Skull Seg Prediction"])
 
         return total_loss
