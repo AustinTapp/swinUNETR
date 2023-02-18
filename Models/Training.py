@@ -113,6 +113,7 @@ class swinUNETR(LightningModule):
 
             CT_recon = CT_recon.to(dtype=torch.float16)
             CT_recon_array = np.clip(CT_recon.detach().cpu().numpy(), 0, 1)
+            skull_Seg = skull_Seg.to(dtype=torch.float16)
 
             self.logger.log_image(key="Predictions", images=[
                 (CT_recon_array * 255)[0, 0, :, :, 64],
