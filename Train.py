@@ -25,7 +25,7 @@ if __name__ == "__main__":
         max_epochs=5000,
         callbacks=[lr_monitor, checkpoint_callback],
         log_every_n_steps=1,
-        precision="bf16"
+        precision=32
     )
 
     trainer.fit(
