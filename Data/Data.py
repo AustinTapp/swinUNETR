@@ -11,6 +11,7 @@ from monai.transforms import (
     RandFlipd,
     RandRotate90d,
     RandSpatialCropd,
+    RandCropByPosNegLabeld,
     ScaleIntensityd,
     Spacingd,
     ToTensord
@@ -46,7 +47,8 @@ class NiftiData(Dataset):
                 Spacingd(keys=["MR", "CT", "Segs"], pixdim=(1.0, 1.0, 1.0), mode=("bilinear", "bilinear", "nearest")),
                 ScaleIntensityd(keys=["MR", "CT"], minv=0.0, maxv=1.0),
                 CropForegroundd(keys=["MR", "CT", "Segs"], source_key="MR", k_divisible=SWIN_size),
-                RandSpatialCropd(keys=["MR", "CT", "Segs"], roi_size=SWIN_size, random_size=False),
+                #RandSpatialCropd(keys=["MR", "CT", "Segs"], roi_size=SWIN_size, random_size=False),
+                RandCropByPosNegLabeld(keys=["MR", "CT", "Segs"], spatial_size=SWIN_size, label_key="Segs",  neg=0),
                 RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[0], prob=0.25),
                 RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[1], prob=0.25),
                 RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[2], prob=0.25),
@@ -89,11 +91,11 @@ class NiftiData(Dataset):
 
         labels = []
         for i in range(8):
-            zeros = torch.zeros_like(image_transformed["Segs"])
-            zeros[image_transformed["Segs"] == i] = 1
+            zeros = torch.zeros_like(image_transformed[0]["Segs"])
+            zeros[image_transformed[0]["Segs"] == i] = 1
             labels.append(zeros)
         modified_label = torch.stack(labels, dim=1)
-        image_transformed["Segs"] = torch.squeeze(modified_label, 0)
+        image_transformed[0]["Segs"] = torch.squeeze(modified_label, 0)
         return image_transformed
 
         # For prediction
