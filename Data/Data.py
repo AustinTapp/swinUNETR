@@ -89,13 +89,13 @@ class NiftiData(Dataset):
         images = {"MR": MR_image, "CT": CT_image, "Segs": Seg_image}
         image_transformed = self.transform_data(images)
 
-        labels = []
-        for i in range(8):
-            zeros = torch.zeros_like(image_transformed[0]["Segs"])
-            zeros[image_transformed[0]["Segs"] == i] = 1
-            labels.append(zeros)
-        modified_label = torch.stack(labels, dim=1)
-        image_transformed[0]["Segs"] = torch.squeeze(modified_label, 0)
+        # labels = []
+        # for i in range(8):
+        #     zeros = torch.zeros_like(image_transformed[0]["Segs"])
+        #     zeros[image_transformed[0]["Segs"] == i] = 1
+        #     labels.append(zeros)
+        # modified_label = torch.stack(labels, dim=1)
+        # image_transformed[0]["Segs"] = torch.squeeze(modified_label, 0)
         return image_transformed
 
         # For prediction
