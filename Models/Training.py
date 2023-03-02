@@ -13,11 +13,12 @@ from monai.visualize.img2tensorboard import plot_2d_or_3d_image
 import numpy as np
 from pytorch_lightning import LightningModule
 import torch
+import warnings
 
 class swinUNETR(LightningModule):
     def __init__(self, SWIN_size,
                  img_size=(1, 1, 128, 128, 128), in_channels=4, batch_size=1, feature_size=48,
-                 lr=1e-2, wd=1e-5):
+                 lr=1e-4, wd=1e-5):
         super().__init__()
 
         self.save_hyperparameters()
@@ -107,48 +108,46 @@ class swinUNETR(LightningModule):
             'step': float(train_steps),
             'epoch': float(self.current_epoch)}, batch_size=self.hparams.batch_size)
 
-        if train_steps % 10 == 0:
-            self.log_dict({
-                #'L1': r1_loss.item(),
-                #'L2': r2_loss.item(),
-                #'Contrastive': cl_loss.item(),
-                #'SSIM': ssim_loss.item(),
-                #'DSCE_Loss': DSCE_loss.item(),
-                #'Mask_Loss': Mask_loss.item(),
-                'DSC_Loss': DSC_loss.item(),
-                'epoch': float(self.current_epoch),
-                'step': float(train_steps)}, batch_size=self.hparams.batch_size)
+        if train_steps % 100 == 0:
+            try:
+                self.log_dict({
+                    #'L1': r1_loss.item(),
+                    #'L2': r2_loss.item(),
+                    #'Contrastive': cl_loss.item(),
+                    #'SSIM': ssim_loss.item(),
+                    #'DSCE_Loss': DSCE_loss.item(),
+                    #'Mask_Loss': Mask_loss.item(),
+                    'DSC_Loss': DSC_loss.item(),
+                    'epoch': float(self.current_epoch),
+                    'step': float(train_steps)}, batch_size=self.hparams.batch_size)
 
-            MRname = input_MR.meta['filename_or_obj'].split("\\")[-1].split("_")[0]
-            CTname = gt_CT.meta['filename_or_obj'].split("\\")[-1].split("_")[0]
-            Segname = gt_Seg.meta['filename_or_obj'].split("\\")[-1].split("_")[0]
+                MRname = input_MR.meta['filename_or_obj'].split("\\")[-1].split("_")[0]
+                CTname = gt_CT.meta['filename_or_obj'].split("\\")[-1].split("_")[0]
+                Segname = gt_Seg.meta['filename_or_obj'].split("\\")[-1].split("_")[0]
 
-            self.logger.log_image(key="Input", images=[
-                (input_MR.detach().cpu().numpy() * 255)[0, 0, :, :, 64]],
-                                  caption=[f"MRI: c{MRname}"])
+                self.logger.log_image(key="Input", images=[
+                    (input_MR.detach().cpu().numpy() * 255)[0, 0, :, :, 64]],
+                                      caption=[f"MRI: c{MRname}"])
 
-            self.logger.log_image(key="Ground Truths", images=[
-                (gt_CT.detach().cpu().numpy() * 255)[0, 0, :, :, 64],
-                (gt_Seg.detach().cpu().numpy() * 255)[0, 0, :, :, 64]],
-                                  caption=[f"CT: c{CTname}", f"Seg: c:{Segname}"])
+                self.logger.log_image(key="Ground Truths", images=[
+                    (gt_CT.detach().cpu().numpy() * 255)[0, 0, :, :, 64],
+                    (gt_Seg.detach().cpu().numpy())[0, 0, :, :, 64]],
+                                      caption=[f"CT: c{CTname}", f"Seg: c:{Segname}"])
 
-            #CT_recon = CT_recon.to(dtype=torch.float16)
-            #CT_recon_array = np.clip(CT_recon.detach().cpu().numpy(), 0, 1)
-            #skull_Seg = skull_Seg.to(dtype=torch.float16)
+                #CT_recon = CT_recon.to(dtype=torch.float16)
+                #CT_recon_array = np.clip(CT_recon.detach().cpu().numpy(), 0, 1)
+                #skull_Seg = skull_Seg.to(dtype=torch.float16)
 
-            post_pred = AsDiscrete(argmax=False, logit_thresh=0.5)
-            skullseg = post_pred(skull_Seg)
+                '''self.logger.log_image(key="Predictions", images=[
+                    (CT_recon_array * 255)[0, 0, :, :, 64],
+                    ((skull_Seg.detach().cpu().numpy().argmax(1)) * (255/7))[0, :, :, 64]],
+                                      caption=["CT Recon", "Skull Seg Prediction"])'''
 
-            '''self.logger.log_image(key="Predictions", images=[
-                (CT_recon_array * 255)[0, 0, :, :, 64],
-                ((skull_Seg.detach().cpu().numpy().argmax(1)) * (255/7))[0, :, :, 64]],
-                                  caption=["CT Recon", "Skull Seg Prediction"])'''
-
-            self.logger.log_image(key="Predictions", images=[
-                #(CT_recon_array * 255)[0, 0, :, :, 64]],
-                (skullseg.detach().cpu().numpy() * 255)[0, 0, :, :, 64]],
-                                  caption=[f"SkullSeg Prediction: c{MRname}"])
+                self.logger.log_image(key="Predictions", images=[
+                    #(CT_recon_array * 255)[0, 0, :, :, 64]],
+                    (skull_Seg.detach().cpu().numpy())[0, 0, :, :, 64]],
+                                      caption=[f"SkullSeg Prediction: c{MRname}"])
+            except FileNotFoundError as e:
+                warnings.warn(str(e))
 
         return total_loss
-
-
