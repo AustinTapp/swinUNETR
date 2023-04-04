@@ -5,7 +5,7 @@ from Data import *
 
 if __name__ == "__main__":
     count = 0
-    image = NiftiData(SWIN_size=(128, 128, 128))
+    image = NiftiData(SWIN_size=(96, 96, 96))
     #print(NiftiData.get_sample(image, 1))
     for item in image:
         #print(item)
