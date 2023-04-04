@@ -23,6 +23,7 @@ if __name__ == "__main__":
     trainer = Trainer(
         logger=wandb_logger,
         accelerator="gpu",
+        #add mutli-gpu
         devices=[0],
         max_epochs=5000,
         callbacks=[lr_monitor, checkpoint_callback],
