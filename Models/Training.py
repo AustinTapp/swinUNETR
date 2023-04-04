@@ -17,7 +17,7 @@ import warnings
 
 class swinUNETR(LightningModule):
     def __init__(self, SWIN_size,
-                 img_size=(1, 1, 128, 128, 128), in_channels=4, batch_size=1, feature_size=48,
+                 img_size=(1, 1, 96, 96, 96), in_channels=1, batch_size=1, feature_size=48,
                  lr=1e-4, wd=1e-5):
         super().__init__()
 
@@ -75,7 +75,6 @@ class swinUNETR(LightningModule):
         #CT_recon_flat_out = CT_recon.flatten(start_dim=1, end_dim=4)
 
         r1_loss = self.L1(CT_recon, gt_CT)
-        self.L1()
         r2_loss = self.L2(CT_recon, gt_CT)
         ssim_loss = self.SSIM(CT_recon, gt_CT, data_range=gt_CT.max().unsqueeze(0))
 
