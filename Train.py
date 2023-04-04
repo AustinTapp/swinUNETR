@@ -16,7 +16,7 @@ if __name__ == "__main__":
     checkpoint_callback = ModelCheckpoint(dirpath="saved_models\\sCT\\", save_top_k=1, monitor="val_loss", save_on_train_epoch_end=True)
     #last_chpt = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\saved_models\\epoch=315-step=319.ckpt"
 
-    SWIN_size = (64, 64, 64)
+    SWIN_size = (48, 48, 48)
 
     trainer = Trainer(
         logger=wandb_logger,
