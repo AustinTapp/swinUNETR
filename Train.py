@@ -16,12 +16,12 @@ if __name__ == "__main__":
     checkpoint_callback = ModelCheckpoint(dirpath="saved_models\\sCT\\", save_top_k=1, monitor="val_loss", save_on_train_epoch_end=True)
     #last_chpt = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\saved_models\\epoch=315-step=319.ckpt"
 
-    SWIN_size = (96, 96, 96)
+    SWIN_size = (64, 64, 64)
 
     trainer = Trainer(
         logger=wandb_logger,
         accelerator="gpu",
-        #socket error with two GPUs used? now GPUs are out of memory????
+        #socket error with two GPUs used? now GPUs are out of memory???? i do not understand what is happening.
         devices=[1],
         max_epochs=5000,
         callbacks=[lr_monitor, checkpoint_callback],
