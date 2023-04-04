@@ -62,8 +62,8 @@ class swinUNETR(LightningModule):
         return [optimizer], [lr_scheduler]
 
     def _prepare_batch(self, batch):
-        MR_batch = batch[0]['MR']
-        CT_batch = batch[0]['CT']
+        MR_batch = batch['MR']
+        CT_batch = batch['CT']
         return MR_batch, CT_batch
 
     def _common_step(self, batch, batch_idx, stage: str):
@@ -75,6 +75,7 @@ class swinUNETR(LightningModule):
         #CT_recon_flat_out = CT_recon.flatten(start_dim=1, end_dim=4)
 
         r1_loss = self.L1(CT_recon, gt_CT)
+        self.L1()
         r2_loss = self.L2(CT_recon, gt_CT)
         ssim_loss = self.SSIM(CT_recon, gt_CT, data_range=gt_CT.max().unsqueeze(0))
 
