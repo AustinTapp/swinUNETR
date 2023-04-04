@@ -13,7 +13,7 @@ if __name__ == "__main__":
     #wandb_logger = WandbLogger(project="MR2CT")
 
     lr_monitor = LearningRateMonitor(logging_interval='epoch')
-    checkpoint_callback = ModelCheckpoint(dirpath="saved_models\\", save_top_k=1, monitor="val_loss", save_on_train_epoch_end=True)
+    checkpoint_callback = ModelCheckpoint(dirpath="saved_models\\sCT\\", save_top_k=1, monitor="val_loss", save_on_train_epoch_end=True)
     #last_chpt = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\saved_models\\epoch=315-step=319.ckpt"
 
     SWIN_size = (128, 128, 128)
