@@ -17,7 +17,7 @@ import warnings
 
 class swinUNETR(LightningModule):
     def __init__(self, SWIN_size,
-                 img_size=(1, 1, 96, 96, 96), in_channels=1, out_channels=1, feature_size=48, drop_rate=0.0,
+                 img_size=(1, 1, 96, 96, 96), in_channels=1, out_channels=1, batch_size=1, feature_size=48, drop_rate=0.0,
                  attn_drop_rate=0.0, dropout_path_rate=0.0, use_checkpoint=False, lr=1e-4, wd=1e-5):
         super().__init__()
 
@@ -36,7 +36,7 @@ class swinUNETR(LightningModule):
         #for CT recon, note L1 = MAE
         self.L1 = L1Loss()
         self.L2 = MSELoss()
-        #self.contrast = ContrastiveLoss(temperature=0.05)
+        self.contrast = ContrastiveLoss(temperature=0.05)
         self.SSIM = SSIMLoss(spatial_dims=3)
 
 
@@ -71,18 +71,21 @@ class swinUNETR(LightningModule):
 
         CT_recon = self.forward(input_MR)
 
-        #gt_CT_flat_out = gt_CT.flatten(start_dim=1, end_dim=4)
-        #CT_recon_flat_out = CT_recon.flatten(start_dim=1, end_dim=4)
+        gt_CT_flat_out = gt_CT.flatten(start_dim=1, end_dim=4)
+        CT_recon_flat_out = CT_recon.flatten(start_dim=1, end_dim=4)
 
         r1_loss = self.L1(CT_recon, gt_CT)
         r2_loss = self.L2(CT_recon, gt_CT)
+
+        cl_loss = self.contrast(gt_CT_flat_out, CT_recon_flat_out)
+
         ssim_loss_0 = self.SSIM(CT_recon[0:1, ...], gt_CT[0:1, ...], data_range=gt_CT.max().unsqueeze(0))
         ssim_loss_1 = self.SSIM(CT_recon[1:2, ...], gt_CT[1:2, ...], data_range=gt_CT.max().unsqueeze(0))
         ssim_loss_2 = self.SSIM(CT_recon[2:3, ...], gt_CT[2:3, ...], data_range=gt_CT.max().unsqueeze(0))
         ssim_total = (ssim_loss_0 + ssim_loss_1 + ssim_loss_2)/3
 
         # Adjust the CL loss by Recon Loss
-        total_loss = r1_loss + r2_loss + ssim_total
+        total_loss = r1_loss + r2_loss + (cl_loss * r1_loss) + ssim_total
         train_steps = self.current_epoch + batch_idx
 
         self.log_dict({
@@ -95,12 +98,12 @@ class swinUNETR(LightningModule):
             'step': float(train_steps),
             'epoch': float(self.current_epoch)}, batch_size=self.hparams.batch_size)
 
-        if train_steps % 100 == 0:
+        if train_steps % 10000 == 0:
             try:
                 self.log_dict({
                     'L1': r1_loss.item(),
                     'L2': r2_loss.item(),
-                    #'Contrastive': cl_loss.item(),
+                    'Contrastive': cl_loss.item(),
                     'SSIM': ssim_total.item(),
                     'epoch': float(self.current_epoch),
                     'step': float(train_steps)}, batch_size=self.hparams.batch_size)

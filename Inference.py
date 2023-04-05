@@ -50,7 +50,7 @@ if __name__ == "__main__":
         roi_size=[96, 96, 96],
         sw_batch_size=12,
         predictor=model,
-        overlap=0.0,
+        overlap=0.75,
         mode='gaussian',
     )
 
@@ -65,6 +65,8 @@ if __name__ == "__main__":
             print(f"Inferring image {i}")
             image = content['MR'].to(device)
             CT_recon = model_inferer_test(image)
-            CT_recon_array = np.clip(CT_recon.detach().cpu().numpy(), 0, 1)
-            CT_array = (CT_recon_array * 255)[0, 0, :, :, 64]
-            CT_image = sitk.GetImageFromArray(CT_array)
+            CT_recon = CT_recon.detach().cpu().numpy()[0, :, :, :]
+            CT_recon = np.transpose(CT_recon)
+            CT_recon = np.flip(CT_recon)
+            CT_recon = sitk.GetImageFromArray(CT_recon)
+            sitk.WriteImage(CT_recon, str(os.path.join(output_path, f"sCT_{i}.nii.gz")))
