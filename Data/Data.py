@@ -11,11 +11,22 @@ from monai.transforms import (
     RandFlipd,
     RandRotate90d,
     RandSpatialCropSamplesd,
-    RandCropByPosNegLabeld,
     ScaleIntensityd,
     Spacingd,
     ToTensord
 )
+
+def test_transform(dict_keys):
+    return Compose(
+            [
+                LoadImaged(keys=dict_keys, allow_missing_keys=True),
+                EnsureChannelFirstd(keys=dict_keys, allow_missing_keys=True),
+                Orientationd(keys=dict_keys, axcodes='RAI', allow_missing_keys=True),
+                ScaleIntensityd(keys=dict_keys, allow_missing_keys=True),
+            ]
+        )
+
+
 
 class NiftiData(Dataset):
     def __init__(self, SWIN_size):
@@ -42,18 +53,6 @@ class NiftiData(Dataset):
                 RandFlipd(keys=["MR", "CT"], spatial_axis=[1], prob=0.25),
                 RandFlipd(keys=["MR", "CT"], spatial_axis=[2], prob=0.25),
                 RandRotate90d(keys=["MR", "CT"], prob=0.25, max_k=3),
-                #ToTensord(keys=["MR", "CT", "Segs"])
-            ]
-        )
-
-        self.prediction_transform = Compose(
-
-            [
-                LoadImaged(keys=["MR"]),
-                EnsureChannelFirstd(keys=["MR"]),
-                Orientationd(keys=["MR"], axcodes='RAI'),
-                ScaleIntensityd(keys=["MR"], minv=0.0, maxv=1.0),
-                CropForegroundd(keys=["MR"], source_key="MR", k_divisible=SWIN_size, margin="edge"),
                 #ToTensord(keys=["MR", "CT", "Segs"])
             ]
         )

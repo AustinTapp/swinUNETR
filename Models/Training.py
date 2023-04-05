@@ -17,8 +17,8 @@ import warnings
 
 class swinUNETR(LightningModule):
     def __init__(self, SWIN_size,
-                 img_size=(1, 1, 96, 96, 96), in_channels=1, batch_size=1, feature_size=48,
-                 lr=1e-4, wd=1e-5):
+                 img_size=(1, 1, 96, 96, 96), in_channels=1, out_channels=1, feature_size=48, drop_rate=0.0,
+                 attn_drop_rate=0.0, dropout_path_rate=0.0, use_checkpoint=False, lr=1e-4, wd=1e-5):
         super().__init__()
 
         self.save_hyperparameters()
@@ -122,7 +122,7 @@ class swinUNETR(LightningModule):
 
                 self.logger.log_image(key="Predictions", images=[
                     (CT_recon_array * 255)[0, 0, :, :, 64]],
-                                      caption=[f"CT Recon: c{CTname}"])
+                                      caption=[f"CT Recon: c{sCTname}"])
 
             except FileNotFoundError as e:
                 warnings.warn(str(e))
