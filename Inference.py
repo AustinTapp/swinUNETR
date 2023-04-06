@@ -102,7 +102,7 @@ if __name__ == "__main__":
         roi_size=[96, 96, 96],
         sw_batch_size=12,
         predictor=model,
-        overlap=0.75,
+        overlap=0.9,
         mode='gaussian',
     )
 
@@ -114,7 +114,8 @@ if __name__ == "__main__":
 
     with torch.no_grad():
         for i, content in enumerate(tqdm(content_Dataloader)):
-            print(f"Inferring image {i}")
+            name = content_Dataloader.dataset.CT_paths[i].split("\\")[-1].split("_")[0]
+            print(f"\nInferring image {name}")
             gt = sitk.ReadImage(content_Dataloader.dataset.CT_paths[i])
             image = content['MR'].to(device)
             CT_recon = model_inferer_test(image)
@@ -129,4 +130,4 @@ if __name__ == "__main__":
             #sitk.WriteImage(sCT, str(os.path.join(output_path, f"UnalignedsCT_{i}.nii.gz")))
 
             CT_recon = realign(gt, sCT)
-            sitk.WriteImage(CT_recon, str(os.path.join(output_path, f"sCT_{i}.nii.gz")))
+            sitk.WriteImage(CT_recon, str(os.path.join(output_path, f"sCT_{name}.nii.gz")))
