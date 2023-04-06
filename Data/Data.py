@@ -26,8 +26,6 @@ def test_transform(dict_keys):
             ]
         )
 
-
-
 class NiftiData(Dataset):
     def __init__(self, SWIN_size):
         # for image check

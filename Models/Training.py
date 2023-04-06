@@ -55,8 +55,8 @@ class swinUNETR(LightningModule):
         lr_scheduler = {
             #decay at plataeu
             #warmup is 1% of max epochs
-            'scheduler': ReduceLROnPlateau(optimizer, mode='min'),
-            #'scheduler': LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=50, max_epochs=5000),
+            #'scheduler': ReduceLROnPlateau(optimizer, mode='min'),
+            'scheduler': LinearWarmupCosineAnnealingLR(optimizer, warmup_epochs=50, max_epochs=5000),
             'monitor': 'val_loss'
         }
         return [optimizer], [lr_scheduler]
@@ -75,7 +75,7 @@ class swinUNETR(LightningModule):
         CT_recon_flat_out = CT_recon.flatten(start_dim=1, end_dim=4)
 
         r1_loss = self.L1(CT_recon, gt_CT)
-        r2_loss = self.L2(CT_recon, gt_CT)
+        '''r2_loss = self.L2(CT_recon, gt_CT)
 
         cl_loss = self.contrast(gt_CT_flat_out, CT_recon_flat_out)
 
@@ -85,7 +85,8 @@ class swinUNETR(LightningModule):
         ssim_total = (ssim_loss_0 + ssim_loss_1 + ssim_loss_2)/3
 
         # Adjust the CL loss by Recon Loss
-        total_loss = r1_loss + r2_loss + (cl_loss * r1_loss) + ssim_total
+        total_loss = r1_loss + r2_loss + (cl_loss * r1_loss) + ssim_total'''
+        total_loss = r1_loss
         train_steps = self.current_epoch + batch_idx
 
         self.log_dict({
@@ -98,13 +99,13 @@ class swinUNETR(LightningModule):
             'step': float(train_steps),
             'epoch': float(self.current_epoch)}, batch_size=self.hparams.batch_size)
 
-        if train_steps % 10000 == 0:
+        if train_steps % 500 == 0:
             try:
                 self.log_dict({
                     'L1': r1_loss.item(),
-                    'L2': r2_loss.item(),
-                    'Contrastive': cl_loss.item(),
-                    'SSIM': ssim_total.item(),
+                    #'L2': r2_loss.item(),
+                    #'Contrastive': cl_loss.item(),
+                    #'SSIM': ssim_total.item(),
                     'epoch': float(self.current_epoch),
                     'step': float(train_steps)}, batch_size=self.hparams.batch_size)
 
