@@ -10,12 +10,21 @@ from monai.transforms import (
     Orientationd,
     RandFlipd,
     RandRotate90d,
-    RandSpatialCropd,
-    RandCropByPosNegLabeld,
+    RandSpatialCropSamplesd,
     ScaleIntensityd,
     Spacingd,
     ToTensord
 )
+
+def test_transform(dict_keys):
+    return Compose(
+            [
+                LoadImaged(keys=dict_keys, allow_missing_keys=True),
+                EnsureChannelFirstd(keys=dict_keys, allow_missing_keys=True),
+                Orientationd(keys=dict_keys, axcodes='RAI', allow_missing_keys=True),
+                ScaleIntensityd(keys=dict_keys, allow_missing_keys=True),
+            ]
+        )
 
 class NiftiData(Dataset):
     def __init__(self, SWIN_size):
@@ -29,45 +38,19 @@ class NiftiData(Dataset):
         self.CTpath = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\Data\\CT"
         self.CT_paths = sorted(glob.glob(self.CTpath + '\\*'))
 
-        self.Segpath = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\Data\\SkullSegs"
-        self.Seg_paths = sorted(glob.glob(self.Segpath + '\\*'))
-
-        # for prediction
-        # self.Testpath = ''
-        # self.pred_path = sorted(glob.glob(self.Testpath + '\\*'))
-        # print("testing: ", self.pred_path)
-
         self.transform = Compose(
 
             [
-                LoadImaged(keys=["MR", "CT", "Segs"]),
-                EnsureChannelFirstd(keys=["MR", "CT", "Segs"]),
-                Orientationd(keys=["MR", "CT", "Segs"], axcodes='RAI'),
-                # #redundent but still okay to do, segmentation should be to nearest, while others are bilinear
+                LoadImaged(keys=["MR", "CT"]),
+                EnsureChannelFirstd(keys=["MR", "CT"]),
+                Orientationd(keys=["MR", "CT"], axcodes='RAI'),
                 ScaleIntensityd(keys=["MR", "CT"], minv=0.0, maxv=1.0),
-                CropForegroundd(keys=["MR", "CT", "Segs"], source_key="CT", k_divisible=SWIN_size),
-                #RandSpatialCropd(keys=["MR", "CT", "Segs"], roi_size=SWIN_size, random_size=False),
-                RandCropByPosNegLabeld(keys=["MR", "CT", "Segs"], spatial_size=SWIN_size, label_key="Segs",  neg=0),
-                RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[0], prob=0.25),
-                RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[1], prob=0.25),
-                RandFlipd(keys=["MR", "CT", "Segs"], spatial_axis=[2], prob=0.25),
-                RandRotate90d(keys=["MR", "CT", "Segs"], prob=0.25, max_k=3),
-
-                #ToTensord(keys=["MR", "CT", "Segs"])
-            ]
-        )
-
-        self.prediction_transform = Compose(
-
-            [
-                LoadImaged(keys=["MR", "CT", "Segs"]),
-                EnsureChannelFirstd(keys=["MR", "CT", "Segs"]),
-                Orientationd(keys=["MR", "CT", "Segs"], axcodes='RAI'),
-                # redundent but still okay to do, segmentation should be to nearest, while others are bilinear
-                Spacingd(keys=["MR", "CT", "Segs"], pixdim=(1.0, 1.0, 1.0), mode=("bilinear", "bilinear", "nearest")),
-                ScaleIntensityd(keys=["MR", "CT"], minv=0.0, maxv=1.0),
-                CropForegroundd(keys=["MR", "CT", "Segs"], source_key="MR",
-                                k_divisible=SWIN_size, margin="edge"),
+                CropForegroundd(keys=["MR", "CT"], source_key="CT"),
+                RandSpatialCropSamplesd(keys=["MR", "CT"], roi_size=(96, 96, 96), num_samples=3, random_size=False),
+                RandFlipd(keys=["MR", "CT"], spatial_axis=[0], prob=0.25),
+                RandFlipd(keys=["MR", "CT"], spatial_axis=[1], prob=0.25),
+                RandFlipd(keys=["MR", "CT"], spatial_axis=[2], prob=0.25),
+                RandRotate90d(keys=["MR", "CT"], prob=0.25, max_k=3),
                 #ToTensord(keys=["MR", "CT", "Segs"])
             ]
         )
@@ -84,8 +67,7 @@ class NiftiData(Dataset):
         # For training
         MR_image = self.MR_paths[index]
         CT_image = self.CT_paths[index]
-        Seg_image = self.Seg_paths[index]
-        images = {"MR": MR_image, "CT": CT_image, "Segs": Seg_image}
+        images = {"MR": MR_image, "CT": CT_image}
         image_transformed = self.transform_data(images)
 
         # labels = []
@@ -104,7 +86,6 @@ class NiftiData(Dataset):
     def get_sample(self, index):
         MR_image = self.MR_paths[index]
         CT_image = self.CT_paths[index]
-        Seg_image = self.Seg_paths[index]
-        images = {"MR": MR_image, "CT": CT_image, "Segs": Seg_image}
+        images = {"MR": MR_image, "CT": CT_image}
         return self.transform(images)
         #return self.prediction_transform(MR)

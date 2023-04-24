@@ -1,5 +1,7 @@
 import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1"
 
 from Data.Dataloader import MRIdata
 from Models.Training import swinUNETR
@@ -13,11 +15,10 @@ if __name__ == "__main__":
     wandb_logger = WandbLogger(project="MR2CT")
 
     lr_monitor = LearningRateMonitor(logging_interval='epoch')
-    checkpoint_callback = ModelCheckpoint(dirpath="saved_models\\MR2CT", save_top_k=1, monitor="val_loss", save_on_train_epoch_end=True)
+    checkpoint_callback = ModelCheckpoint(dirpath="saved_models\\sCT\\", save_top_k=1, monitor="val_loss", save_on_train_epoch_end=True)
     #last_chpt = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\saved_models\\epoch=315-step=319.ckpt"
 
-    SWIN_size = (128, 128, 128)
-
+    SWIN_size = (96, 96, 96)
     trainer = Trainer(
         logger=wandb_logger,
         accelerator="gpu",
@@ -33,3 +34,5 @@ if __name__ == "__main__":
         #ckpt_path=last_chpt,
         datamodule=MRIdata(batch_size=1, SWIN_size=SWIN_size)
     )
+
+    #add in mask loss
