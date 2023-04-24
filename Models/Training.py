@@ -86,6 +86,7 @@ class swinUNETR(LightningModule):
 
         # Adjust the CL loss by Recon Loss
         total_loss = r1_loss + r2_loss + (cl_loss * r1_loss) + ssim_total'''
+        #mask loss/perceptual loss needed
         total_loss = r1_loss
         train_steps = self.current_epoch + batch_idx
 

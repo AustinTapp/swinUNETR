@@ -1,11 +1,9 @@
 import os
-import glob
 from functools import partial
 import warnings
-
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1"
+#os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+#os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1"
 
 import SimpleITK as sitk
 import numpy as np
@@ -45,14 +43,6 @@ def realign(gt_CT, sCT):
 
         sCTtoGT.SetOrigin(origin)
         sCTtoGT.SetDirection(gt_CT.GetDirection())
-
-        #CT values are 0 where not aligned, address with intensity shift, may not need
-        '''CT_to_T1_array = sitk.GetArrayFromImage(CT_to_T1_image)
-        CT_to_T1_array[CT_to_T1_array == 0] = -1024
-        CT_to_T1_array2im = sitk.GetImageFromArray(CT_to_T1_array)
-
-        CT_to_T1_array2im.SetOrigin(CT_to_T1_image.GetOrigin())
-        CT_to_T1_array2im.SetDirection(CT_to_T1_image.GetDirection())'''
         return sCTtoGT
 
     except RuntimeError as e:
@@ -66,10 +56,13 @@ def rescale(gt_CT, sCT):
     sCT_range = sCT_max - sCT_min
     scale_factor = target_range / sCT_range
     sCTrescale = (sCT - sCT_min) * scale_factor + GT_min
+
+    #anything lower than 0 is -1024
+    sCTrescale[sCTrescale < 0] = -1024
     return sCTrescale
 
 if __name__ == "__main__":
-    model_path = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\saved_models\\sCT\\epoch=2248-step=2253.ckpt"
+    model_path = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\saved_models\\sCT\\epoch=1119-step=1124.ckpt"
     input_predict_path = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\Data\\MR"
     input_data = NiftiData(input_predict_path)
 
@@ -78,7 +71,8 @@ if __name__ == "__main__":
     if not os.path.exists(output_path):
         os.makedirs(output_path)
 
-    device = torch.device(1)
+    device = torch.device(0)
+    
     model = swinUNETR(
         (96, 96, 96),
         img_size=(1, 1, 96, 96, 96),
@@ -124,6 +118,7 @@ if __name__ == "__main__":
             sCT = CT_recon_array[0, 0, :, :, :]
             sCT = np.transpose(sCT)
             sCT = np.flip(sCT)
+            #something still slightly off with relation to the reconstruction
 
             CT_rescale = rescale(gt, sCT)
             sCT = sitk.GetImageFromArray(CT_rescale)
@@ -131,3 +126,4 @@ if __name__ == "__main__":
 
             CT_recon = realign(gt, sCT)
             sitk.WriteImage(CT_recon, str(os.path.join(output_path, f"sCT_{name}.nii.gz")))
+            print(f"\nInferring image {name} success!")

@@ -19,7 +19,6 @@ if __name__ == "__main__":
     #last_chpt = "C:\\Users\\Austin Tapp\\Documents\\swinUNETR\\saved_models\\epoch=315-step=319.ckpt"
 
     SWIN_size = (96, 96, 96)
-
     trainer = Trainer(
         logger=wandb_logger,
         accelerator="gpu",
@@ -35,3 +34,5 @@ if __name__ == "__main__":
         #ckpt_path=last_chpt,
         datamodule=MRIdata(batch_size=1, SWIN_size=SWIN_size)
     )
+
+    #add in mask loss
