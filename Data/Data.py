@@ -108,4 +108,3 @@ class NiftiData(Dataset):
         images = {"MR": MR_image, "CT": CT_image, "Segs": Seg_image}
         return self.transform(images)
         #return self.prediction_transform(MR)
-

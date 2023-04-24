@@ -15,4 +15,3 @@ class MRIdata(LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(self.val, batch_size=self.batch_size, num_workers=6, drop_last=True, pin_memory=True, persistent_workers=True)
-
